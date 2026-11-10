@@ -1,0 +1,22 @@
+category: emergency
+# PAN PAN médico em português: Controle SP deve dar prioridade e vetores diretos para Guarulhos.
+airport: SBGR
+callsign: PT-MED
+language: pt-br
+initial_position: Controle
+flight_plan: {aircraft_type: A320, flight_rules: IFR, departure: SBBR, destination: SBGR, cruise_altitude_ft: 35000}
+start: {lat: -23.2000, lon: -46.2000, alt_ft: 9000, heading: 225, on_ground: false, mode: cruising}
+pilot_goal: >
+  Você declarou PAN PAN por passageiro com mal súbito. Siga as instruções, responda o que for perguntado
+  e peça a aproximação mais rápida. Responda DONE quando for autorizado a uma aproximação.
+pilot_script:
+  - "PAN PAN, PAN PAN, PAN PAN, Controle São Paulo, PT-MED, passageiro com mal súbito, solicito prioridade para pouso em Guarulhos e ambulância na chegada"
+turn_checks:
+  - {turn: 1, any: ["ciente", "prioridade", "pan pan", "ambulância", "ambulancia"]}
+expect_clearances: [approach]
+min_turns: 2
+max_turns: 10
+rubric_notes: >
+  Urgência: acusar o PAN PAN, dar prioridade (vetores/descida direta), confirmar que a ambulância será
+  acionada, e autorizar a aproximação sem esperas.
+metar: "SBGR 281300Z 09008KT 9999 SCT030 22/15 Q1018"

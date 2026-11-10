@@ -1,0 +1,15 @@
+# ATC Backend Server Dependencies
+flask>=3.0.0
+flask-cors>=4.0.0
+requests>=2.31.0
+openai>=1.0.0
+
+# Audio processing (for standalone testing)
+# Note: pyaudio is needed for X-Plane plugin, but installed separately there
+
+# Optional: for development
+python-dotenv>=1.0.0
+
+# Testing
+pytest>=8.0
+pyyaml>=6.0

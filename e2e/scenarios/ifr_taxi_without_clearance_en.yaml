@@ -1,0 +1,23 @@
+category: ground
+# IFR aircraft asks Ground for taxi without mentioning an IFR clearance: must get it from Delivery first
+airport: KBOS
+callsign: N54321
+language: en
+initial_position: Ground
+flight_plan: {aircraft_type: PC12, flight_rules: IFR, destination: KJFK, route: DCT, cruise_altitude_ft: 9000}
+start: {lat: 42.3640, lon: -71.0200, alt_ft: 20, heading: 90, on_ground: true, mode: parked}
+pilot_goal: >
+  You are IFR to JFK at the Signature ramp. Ask Ground for taxi. If told you need your IFR clearance,
+  get it from Clearance Delivery (switch frequency), read it back, then go back to Ground for taxi.
+  Reply DONE once you have a taxi clearance read back.
+pilot_script:
+  - "Boston Ground, November five four three two one, Pilatus PC12 at Signature with information Alpha, ready to taxi"
+turn_checks:
+  - {turn: 1, any: ["clearance", "delivery", "cleared to"]}
+expect_clearances: [ifr, taxi]
+min_turns: 3
+max_turns: 10
+rubric_notes: >
+  An IFR departure must hold its IFR clearance before taxi. Ground should say "contact Clearance Delivery
+  on one two one decimal six five" (or ask if they have their clearance) instead of taxiing them straight away.
+metar: "KBOS 281254Z 04010KT 10SM BKN025 16/11 A2990"

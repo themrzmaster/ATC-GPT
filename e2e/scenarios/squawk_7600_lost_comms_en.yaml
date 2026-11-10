@@ -1,0 +1,19 @@
+category: emergency
+# Transponder goes to 7600 (radio failure). The controller should try to reach the aircraft ("if you hear...").
+airport: KBOS
+callsign: N54321
+language: en
+initial_position: Approach
+flight_plan: {aircraft_type: PC12, flight_rules: IFR, departure: KJFK, destination: KBOS, cruise_altitude_ft: 11000}
+start: {lat: 42.1000, lon: -71.3000, alt_ft: 7000, heading: 45, on_ground: false, mode: cruising}
+pilot_goal: Check in, then lose the radio (squawk 7600, silent).
+pilot_script:
+  - "Boston Approach, November five four three two one, seven thousand, inbound for landing"
+  - {say: STANDBY, sim: {squawk: 7600}}
+  - STANDBY
+script_only: true
+expect_any: [["7600", "seven six zero zero", "if you hear", "ident", "radio", "how do you read"]]
+min_turns: 2
+rubric_notes: 7600 = lost comms. Expected "N54321, if you hear this transmission, ident" / "squawk ident", or blind transmissions.
+metar: "KBOS 281254Z 04010KT 10SM BKN025 16/11 A2990"
+expect_initiative: true

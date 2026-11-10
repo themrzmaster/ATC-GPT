@@ -1,0 +1,23 @@
+category: readback
+# Delivery: pilot reads back the IFR clearance with a wrong squawk. Delivery must correct it.
+airport: KJFK
+callsign: N12345
+language: en
+initial_position: Delivery
+flight_plan: {aircraft_type: C172, flight_rules: IFR, destination: KBOS, route: DCT, cruise_altitude_ft: 7000}
+start: {lat: 40.6425, lon: -73.7790, alt_ft: 13, heading: 310, on_ground: true, mode: parked}
+pilot_goal: >
+  Get your IFR clearance to Boston. If ATC corrects your readback, read back the corrected items
+  exactly. Reply DONE once the readback is confirmed correct.
+pilot_script:
+  - "Kennedy Clearance, November one two three four five, Cessna 172, IFR to Boston, request clearance"
+  - "Cleared to Boston as filed, climb and maintain five thousand, expect seven thousand ten minutes after departure, departure frequency one three five point niner, squawk one two three four, November one two three four five"
+turn_checks:
+  - {turn: 2, any: ["negative", "correction", "verify", "readback", "read back", "squawk"]}
+expect_clearances: [ifr, squawk]
+min_turns: 2
+max_turns: 6
+rubric_notes: >
+  The scripted readback has squawk 1234, which Delivery did not assign (and possibly other wrong items).
+  Delivery must say "negative"/"correction" and restate the correct squawk (and any other wrong item).
+metar: "KJFK 281251Z 22012KT 10SM FEW030 18/12 A2995"

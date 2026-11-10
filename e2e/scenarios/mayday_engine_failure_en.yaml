@@ -1,0 +1,26 @@
+category: emergency
+# MAYDAY after takeoff: engine failure, returning to land. Tower must give priority and a runway immediately.
+airport: KHPN
+callsign: N123AB
+language: en
+initial_position: Tower
+flight_plan: {aircraft_type: C172, flight_rules: VFR, destination: KBED}
+start: {lat: 41.0480, lon: -73.6980, alt_ft: 1500, heading: 160, on_ground: false, mode: cruising}
+pilot_goal: >
+  You declared an emergency (engine failure) right after takeoff and are returning to land. Answer
+  ATC's questions (2 souls, 3 hours of fuel) and follow instructions. Reply DONE once cleared to land.
+pilot_script:
+  - "Mayday mayday mayday, Westchester Tower, November one two three alpha bravo, engine failure, returning to land"
+turn_checks:
+  - {turn: 1, any: ["cleared to land", "any runway", "runway", "mayday"], none: ["contact departure", "say intentions"]}
+expect_clearances: [landing]
+forbid_phrases: ["contact new york departure"]
+min_turns: 2
+max_turns: 8
+rubric_notes: >
+  Emergency handling: acknowledge the MAYDAY, give the runway/wind and landing clearance at once
+  ("any runway available"), ask souls on board and fuel when workload allows, never hand the aircraft
+  off or make it wait.
+sim_steps_per_turn: 2
+sim_step_seconds: 15
+metar: "KHPN 281256Z 16008KT 10SM FEW040 20/10 A3001"

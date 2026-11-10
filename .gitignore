@@ -1,0 +1,17 @@
+venv/
+.venv/
+.env
+__pycache__/
+.cache/
+.DS_Store
+.pytest_cache/
+.claude/
+e2e/reports/
+campaigns/
+
+# personal / machine-specific
+scripts/box.local.sh
+xplane_plugin/virtualatc_config.txt
+xplane_plugin/from_box/
+xplane_plugin/*.wav
+*.log

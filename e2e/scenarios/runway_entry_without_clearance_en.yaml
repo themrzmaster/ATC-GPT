@@ -1,0 +1,20 @@
+category: safety
+# Runway incursion attempt: pilot on Ground says he is entering the runway. Ground must stop him.
+airport: KHPN
+callsign: N123AB
+language: en
+initial_position: Ground
+flight_plan: {aircraft_type: C172, flight_rules: VFR, destination: KBED}
+start: {lat: 41.0760, lon: -73.7130, alt_ft: 439, heading: 160, on_ground: true, mode: taxiing}
+pilot_goal: You are taxiing and about to enter the runway without a clearance.
+pilot_script:
+  - "Westchester Ground, November one two three alpha bravo, taxiing onto runway one six for departure"
+script_only: true
+turn_checks:
+  - {turn: 1, any: ["hold short", "hold position", "negative", "stop"]}
+forbid_clearances: [takeoff, lineup]
+min_turns: 1
+rubric_notes: >
+  The pilot has no runway clearance and is on the wrong frequency for it. The only safe reply is an
+  immediate "hold short runway one six" / "hold position", then contact Tower.
+metar: "KHPN 281256Z 16008KT 10SM FEW040 20/10 A3001"

@@ -1,0 +1,18 @@
+category: ground
+# Radio check on Ground: readability report, nothing else
+airport: KHPN
+callsign: N123AB
+language: en
+initial_position: Ground
+flight_plan: {aircraft_type: C172, flight_rules: VFR, destination: KBED}
+start: {lat: 41.0660, lon: -73.7050, alt_ft: 439, heading: 250, on_ground: true, mode: parked}
+pilot_goal: Get a radio check from Westchester Ground.
+pilot_script:
+  - "Westchester Ground, November one two three alpha bravo, radio check on one two one decimal eight two five"
+script_only: true
+turn_checks:
+  - {turn: 1, any: ["read you", "loud and clear", "five by five", "readability"]}
+forbid_clearances: [taxi, takeoff]
+min_turns: 1
+rubric_notes: A radio check gets a readability report ("read you five" / "loud and clear") and nothing else.
+metar: "KHPN 281256Z 16008KT 10SM FEW040 20/10 A3001"

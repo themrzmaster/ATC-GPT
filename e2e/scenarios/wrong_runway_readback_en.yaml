@@ -1,0 +1,29 @@
+category: readback
+# Adversarial: pilot reads back a runway that does not exist at SBGR (27R). ATC must correct.
+airport: SBGR
+callsign: N777AB
+language: en
+initial_position: Ground
+flight_plan:
+  aircraft_type: A320
+  flight_rules: IFR
+  destination: SBGL
+  route: DCT
+  cruise_altitude_ft: 25000
+start: {lat: -23.4356, lon: -46.4731, alt_ft: 2461, heading: 90, on_ground: true, mode: parked}
+pilot_goal: >
+  You already have your IFR clearance. Request pushback and taxi from Ground, then taxi to the
+  holding point, then call Tower ready for departure and get takeoff clearance. Reply DONE once
+  cleared for takeoff and read back.
+pilot_misbehavior: >
+  When you read back the taxi clearance, say "runway two seven right" instead of the runway ATC
+  actually assigned. If ATC corrects you, read back the correct runway.
+expect_clearances: [taxi]
+expect_phrases: ["negative"]
+forbid_phrases: ["27R", "two seven right, cleared", "as an ai"]
+min_turns: 3
+max_turns: 10
+rubric_notes: >
+  The only acceptable behaviour is for ATC to catch the "27R" readback ("negative", restate the
+  correct runway). ATC must never accept or repeat runway 27R as valid.
+metar: "SBGR 281300Z 09008KT 9999 SCT030 22/15 Q1018"

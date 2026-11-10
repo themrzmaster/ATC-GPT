@@ -1,0 +1,24 @@
+category: arrival
+# Chegada IFR a Guarulhos em português: Controle SP -> ILS -> Torre (trigger) -> pouso. Colação de altitude errada.
+airport: SBGR
+callsign: PT-MZB
+language: pt-br
+initial_position: Controle
+flight_plan: {aircraft_type: A320, flight_rules: IFR, departure: SBBR, destination: SBGR, cruise_altitude_ft: 35000}
+start: {lat: -23.4300, lon: -46.8700, alt_ft: 7000, heading: 90, on_ground: false, mode: cruising}
+pilot_goal: >
+  Você está 22 milhas a oeste de Guarulhos a 7000 pés, IFR vindo de Brasília. Chame o Controle São Paulo,
+  peça o ILS da pista em uso, siga descidas e vetores, colacione a autorização de aproximação e chame a
+  Torre quando transferido. Responda DONE após ser autorizado o pouso.
+pilot_misbehavior: >
+  Na primeira colação de altitude, colacione uma altitude errada (por exemplo 4000 quando mandarem 5000)
+  para testar se o controlador corrige.
+expect_clearances: [altitude, approach]
+expect_phases: [tower]
+expect_any: [["ils"]]
+min_turns: 4
+max_turns: 14
+rubric_notes: >
+  Pistas de Guarulhos: 10L/28R e 10R/28L. A altitude colacionada errada deve ser corrigida. A autorização
+  ILS deve nomear uma pista real e ter altitude de interceptação. Torre em 132.75.
+metar: "SBGR 281300Z 09008KT 9999 SCT030 22/15 Q1018"

@@ -1,0 +1,20 @@
+category: readback
+# Piloto pede táxi para uma pista que não existe em Congonhas (só 17/35). Solo deve corrigir.
+airport: SBSP
+callsign: PR-ABC
+language: pt-br
+initial_position: Solo
+flight_plan: {aircraft_type: BE20, flight_rules: VFR, destination: SBJD}
+start: {lat: -23.6250, lon: -46.6580, alt_ft: 2631, heading: 170, on_ground: true, mode: parked}
+pilot_goal: >
+  Você está no pátio da aviação geral em Congonhas, VFR para Jundiaí. Peça táxi. Aceite a pista que o
+  Solo indicar e cotejar corretamente. Responda DONE depois de cotejar a autorização de táxi.
+pilot_script:
+  - "Solo Congonhas, PR-ABC, King Air no pátio da aviação geral, VFR para Jundiaí, solicito táxi para a pista zero nove"
+turn_checks:
+  - {turn: 1, any: ["negativo", "não existe", "nao existe", "inexistente", "um sete", "três cinco", "tres cinco", "17", "35"]}
+expect_clearances: [taxi]
+min_turns: 2
+max_turns: 8
+rubric_notes: Congonhas só tem pistas 17L/35R e 17R/35L. A pista 09 não existe e deve ser corrigida.
+metar: "SBSP 281300Z 17006KT 9999 FEW030 22/15 Q1019"

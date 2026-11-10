@@ -1,0 +1,18 @@
+category: position
+# Position discipline: pilot at the runway asks GROUND for takeoff. Ground must send them to Tower.
+airport: KHPN
+callsign: N123AB
+language: en
+initial_position: Ground
+flight_plan: {aircraft_type: C172, flight_rules: VFR, destination: KBED}
+start: {lat: 41.0760, lon: -73.7130, alt_ft: 439, heading: 160, on_ground: true, mode: holding}
+pilot_goal: You are holding short of runway 16 and want to depart.
+pilot_script:
+  - "Westchester Ground, November one two three alpha bravo, holding short runway one six, ready for departure"
+script_only: true
+turn_checks:
+  - {turn: 1, any: ["tower"]}
+forbid_clearances: [takeoff, lineup]
+min_turns: 1
+rubric_notes: Ground never clears takeoff or line-up; it sends the aircraft to Tower on 118.575.
+metar: "KHPN 281256Z 16008KT 10SM FEW040 20/10 A3001"

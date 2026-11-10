@@ -1,0 +1,33 @@
+category: arrival
+# IFR arrival at Boston: Approach vectors + ILS clearance, then handoff to Tower and landing
+airport: KBOS
+callsign: N54321
+language: en
+initial_position: Approach
+flight_plan:
+  aircraft_type: PC12
+  flight_rules: IFR
+  departure: KJFK
+  destination: KBOS
+  cruise_altitude_ft: 11000
+start: {lat: 42.10, lon: -71.30, alt_ft: 7000, heading: 45, on_ground: false, mode: cruising}
+pilot_goal: >
+  You are inbound to Boston at 7000 ft, about 20 miles southwest, with the ATIS. Check in with
+  Boston Approach, request the ILS to the active runway, follow the descent and vectors, read
+  back the approach clearance, then contact Tower when handed off and get landing clearance.
+  Reply DONE once cleared to land.
+pilot_misbehavior: >
+  On your first readback of an altitude, read back a wrong altitude (e.g. say 3000 when given 4000)
+  to test whether ATC catches it.
+expect_clearances: [altitude, approach]
+expect_phases: [tower]
+expect_phrases: ["ils"]
+forbid_phrases: ["as an ai", "i cannot"]
+min_turns: 4
+max_turns: 14
+rubric_notes: >
+  Boston runways: 04L/22R, 04R/22L, 09/27, 15R/33L, 15L/33R. The wrong-altitude readback must be
+  corrected. The approach clearance should name a real Boston ILS runway and include an intercept
+  altitude. Tower handoff should include the tower frequency.
+metar: "KBOS 281254Z 04010KT 10SM BKN025 16/11 A2990"
+expect_initiative: true

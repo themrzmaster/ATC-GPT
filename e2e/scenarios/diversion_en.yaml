@@ -1,0 +1,26 @@
+category: edge
+# Diversion to another airport (Hanscom). The session only knows Boston's data: probes cross-airport handling.
+airport: KBOS
+callsign: N54321
+language: en
+initial_position: Approach
+flight_plan: {aircraft_type: PC12, flight_rules: IFR, departure: KJFK, destination: KBOS, cruise_altitude_ft: 11000}
+start: {lat: 42.1000, lon: -71.3000, alt_ft: 7000, heading: 45, on_ground: false, mode: cruising}
+pilot_goal: >
+  You want to divert to Hanscom Field (KBED) because a passenger lives there and Boston has long delays.
+  Follow the instructions. Reply DONE once cleared for an approach into Hanscom or handed to Hanscom Tower.
+pilot_script:
+  - "Boston Approach, November five four three two one, seven thousand, request diversion to Hanscom Field, Bravo Echo Delta"
+expect_any: [["hanscom", "bravo echo delta", "kbed"]]
+forbid_phrases: ["boston tower", "logan tower"]
+min_turns: 2
+max_turns: 10
+rubric_notes: >
+  Hanscom (KBED) runways 05/23 and 11/29, Tower 118.5, Boston Approach/Departure 124.4 serves it.
+  The controller must not hand the aircraft to Boston Logan Tower or clear a Logan approach, and must not
+  invent a Hanscom frequency.
+metar: "KBOS 281254Z 04010KT 10SM BKN025 16/11 A2990"
+expect_no_invalid_runways: false   # Hanscom runways are not in the KBOS session
+known_gap: >
+  Without a radio (playground/e2e) the session can't follow the pilot to another airport by name
+  ("Hanscom Tower" is treated as Boston Tower). With the plugin, COM1 on 118.5 moves the session to KBED.

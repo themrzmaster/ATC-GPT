@@ -1,0 +1,17 @@
+category: departure
+# Saída VFR do Campo de Marte para Jundiaí: Solo -> Torre -> Controle São Paulo (trigger)
+airport: SBMT
+callsign: PR-XYZ
+language: pt-br
+initial_position: Solo
+flight_plan: {aircraft_type: C152, flight_rules: VFR, destination: SBJD, cruise_altitude_ft: 4500}
+start: {lat: -23.5090, lon: -46.6380, alt_ft: 2371, heading: 120, on_ground: true, mode: parked}
+pilot_goal: >
+  VFR para Jundiaí. Peça táxi ao Solo, chame a Torre no ponto de espera, decole e chame o Controle
+  São Paulo quando for transferido. Responda DONE quando o Controle responder.
+expect_clearances: [taxi, takeoff]
+expect_phases: [approach]
+min_turns: 4
+max_turns: 12
+rubric_notes: Campo de Marte pista 12/30, Solo 121.6, Torre 118.7, Controle SP 119.8.
+metar: "SBMT 281300Z 30006KT 9999 FEW035 24/14 Q1017"

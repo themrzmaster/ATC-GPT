@@ -1,0 +1,23 @@
+category: arrival
+# Pilot requests a hold (gear indication problem). Approach must issue a real hold with EFC.
+airport: KBOS
+callsign: N54321
+language: en
+initial_position: Approach
+flight_plan: {aircraft_type: PC12, flight_rules: IFR, departure: KJFK, destination: KBOS, cruise_altitude_ft: 11000}
+start: {lat: 42.1000, lon: -71.3000, alt_ft: 7000, heading: 45, on_ground: false, mode: cruising}
+pilot_goal: >
+  After the hold is issued, read it back. When asked or after a while, say the problem is solved and
+  request the ILS. Reply DONE once cleared for an approach.
+pilot_script:
+  - "Boston Approach, November five four three two one, seven thousand, we have a gear indication problem, request holding for about ten minutes to troubleshoot"
+turn_checks:
+  - {turn: 1, any: ["hold"]}
+expect_any: [["expect further clearance", "efc", "expect further"]]
+expect_clearances: [hold]
+min_turns: 3
+max_turns: 10
+rubric_notes: >
+  A hold clearance has a fix, direction, radial/course, turns, leg length or "as published", altitude and
+  an EFC time. Asking whether they need assistance / declaring an emergency is good practice.
+metar: "KBOS 281254Z 04010KT 10SM BKN025 16/11 A2990"

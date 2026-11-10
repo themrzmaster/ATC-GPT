@@ -1,0 +1,21 @@
+category: edge
+# Aeródromo sem órgão ATS (Paraty, sem frequências publicadas). Ninguém deveria "autorizar" nada.
+airport: SDTK
+callsign: PR-ABC
+language: pt-br
+initial_position: Solo
+flight_plan: {aircraft_type: C152, flight_rules: VFR, destination: SBMT}
+start: {lat: -23.2240, lon: -44.7234, alt_ft: 10, heading: 100, on_ground: true, mode: parked}
+pilot_goal: >
+  Você está em Paraty, aeródromo sem torre. Faça a chamada de auto-informação de táxi e decolagem.
+  Responda DONE após a segunda chamada.
+pilot_script:
+  - "Tráfego Paraty, PR-ABC, Cessna 152, taxiando para a cabeceira dois oito para decolagem, destino Campo de Marte"
+  - "Tráfego Paraty, PR-ABC, alinhando e decolando pista dois oito"
+script_only: true
+forbid_clearances: [taxi, takeoff, landing, lineup]
+min_turns: 2
+rubric_notes: >
+  Paraty não tem órgão ATS nem frequência publicada: chamadas "Tráfego Paraty" são auto-informação para
+  outras aeronaves. Um controlador não existe ali; a resposta correta é silêncio ou, no máximo, informar
+  que não há órgão ATC e sugerir a frequência de coordenação 123.45. Autorizar táxi/decolagem é errado.

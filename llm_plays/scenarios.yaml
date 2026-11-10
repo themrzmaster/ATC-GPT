@@ -1,0 +1,120 @@
+# LLM plays X-Plane - scenarios. Add one = a few lines; `extends:` copies another scenario and overrides.
+#
+#   type:        landing (start on final) | circuit (start on the runway, fly a pattern, land) |
+#                cross_country (start on the runway, land at `destination`)
+#   airport/runway: where the aircraft starts (any airport/runway in the OurAirports data)
+#   destination: {airport, runway} to land on (default: same as airport/runway)
+#   start:       landing: distance_nm, height_offset_ft (+ above glidepath), cross_offset_ft (+ right),
+#                speed_kt, heading_offset_deg      circuit/cross_country: on the runway
+#   weather:     wind_from_deg, wind_kt, gust_kt, turbulence (0-10), visibility_sm,
+#                clouds: [{base_ft_agl, coverage 0-1}], rain (0-1), time_local "HH:MM"
+#                (omitted = calm, clear, 10+ sm; weather is re-applied on every run: identical conditions)
+#   approach:    what avionics the pilot has on this approach (the model only sees what a pilot would):
+#                visual = panel + the view only | rnav = + GPS (GNS 430) LPV readout (default) |
+#                ils = + NAV1 ILS needles (tuned from X-Plane's nav database), DME if any, marker beacons
+#   minimums_ft: decision height above the runway (default rnav 250, ils 200, visual none). If the weather is
+#                below minimums (ceiling <= minimums or visibility < 1/2 sm) the correct result is the missed
+#                approach at the decision altitude; landing anyway fails the checkride.
+#   reported_weather: optional, same keys as weather: what the ATIS told the pilot, when the real weather differs
+#                (e.g. it got worse after the report). Default: the ATIS reports the actual weather.
+#   limits:      max_turns, max_sim_s, max_go_arounds
+#   goal:        optional; otherwise generated from the type/airports/weather
+#
+# After adding scenarios: python -m llm_plays.run --make-start all     (builds the start states, no model calls)
+
+land_sbbh13:
+  type: landing
+  airport: SBBH
+  runway: "13"
+  start: {distance_nm: 5.0, speed_kt: 75}
+  limits: {max_turns: 90, max_sim_s: 480, max_go_arounds: 1}
+
+# --- weather variants at Pampulha --------------------------------------------------------------
+land_sbbh13_headwind:
+  extends: land_sbbh13
+  weather: {wind_from_deg: 111, wind_kt: 15}
+
+land_sbbh13_xwind:
+  extends: land_sbbh13
+  weather: {wind_from_deg: 21, wind_kt: 10}            # 90 deg from the left
+
+land_sbbh13_gusty:
+  extends: land_sbbh13
+  weather: {wind_from_deg: 150, wind_kt: 12, gust_kt: 8, turbulence: 3}
+
+land_sbbh13_lowvis:
+  extends: land_sbbh13
+  weather: {visibility_sm: 3, clouds: [{base_ft_agl: 900, coverage: 0.9}], rain: 0.3}
+
+land_sbbh13_tailwind:                                   # judgement: runway 13 with a 10 kt tailwind
+  extends: land_sbbh13
+  weather: {wind_from_deg: 291, wind_kt: 10}
+
+# --- start-position variants ------------------------------------------------------------------
+land_sbbh13_offset:
+  extends: land_sbbh13
+  start: {distance_nm: 5.0, speed_kt: 75, cross_offset_ft: 2000, height_offset_ft: 300}
+
+land_sbbh13_close_high:                                 # 2.5 nm, 500 ft high: slip / steep descent or go around
+  extends: land_sbbh13
+  start: {distance_nm: 2.5, speed_kt: 75, height_offset_ft: 500}
+
+# --- other airports ---------------------------------------------------------------------------
+land_sbmt30:                                            # Campo de Marte, Sao Paulo (city, 5249 ft)
+  extends: land_sbbh13
+  airport: SBMT
+  runway: "30"
+
+land_sbsp35l:                                           # Congonhas, Sao Paulo (short-ish 6365 ft, city)
+  extends: land_sbbh13
+  airport: SBSP
+  runway: "35L"
+
+land_khpn16:                                            # Westchester, New York
+  extends: land_sbbh13
+  airport: KHPN
+  runway: "16"
+
+land_kbos04r:                                           # Boston Logan, long runway, sea level
+  extends: land_sbbh13
+  airport: KBOS
+  runway: "04R"
+  weather: {wind_from_deg: 70, wind_kt: 12}
+
+# --- instrument / visual approaches ------------------------------------------------------------
+land_sbbh13_visual:                                     # no guidance at all: fly the picture
+  extends: land_sbbh13
+  approach: visual
+
+land_sbsp35l_ils_fog:                                   # real ILS (ISO 109.7), breaks out at 300 ft: land
+  extends: land_sbbh13
+  airport: SBSP
+  runway: "35L"
+  approach: ils
+  weather: {wind_from_deg: 330, wind_kt: 6, visibility_sm: 1, clouds: [{base_ft_agl: 300, coverage: 1.0}], rain: 0.2}
+
+land_sbsp35l_ils_below_mins:                            # ATIS says 200 ft / 1/2 sm (legal to start the approach),
+  extends: land_sbsp35l_ils_fog                         # but it has come down to 100 ft / 1/4 sm: nothing in sight
+  weather: {wind_from_deg: 330, wind_kt: 4, visibility_sm: 0.25, clouds: [{base_ft_agl: 100, coverage: 1.0}]}
+  reported_weather: {wind_from_deg: 330, wind_kt: 4, visibility_sm: 0.5, clouds: [{base_ft_agl: 200, coverage: 1.0}]}
+
+land_kbos04r_ils_fog:                                   # Boston ILS 04R in fog, sea level
+  extends: land_sbbh13
+  airport: KBOS
+  runway: "04R"
+  approach: ils
+  weather: {wind_from_deg: 60, wind_kt: 10, visibility_sm: 1.5, clouds: [{base_ft_agl: 400, coverage: 1.0}]}
+
+# --- whole flights ----------------------------------------------------------------------------
+circuit_sbbh13:
+  type: circuit
+  airport: SBBH
+  runway: "13"
+  limits: {max_turns: 300, max_sim_s: 1200, max_go_arounds: 1}
+
+sbbh_to_sbcf:
+  type: cross_country
+  airport: SBBH
+  runway: "13"
+  destination: {airport: SBCF, runway: "16"}
+  limits: {max_turns: 400, max_sim_s: 2400, max_go_arounds: 1}

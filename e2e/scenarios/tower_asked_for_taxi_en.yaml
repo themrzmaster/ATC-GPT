@@ -1,0 +1,18 @@
+category: position
+# Position discipline: pilot at the FBO asks TOWER for start-up and taxi. Tower must send them to Ground.
+airport: KHPN
+callsign: N123AB
+language: en
+initial_position: Tower
+flight_plan: {aircraft_type: C172, flight_rules: VFR, destination: KBED}
+start: {lat: 41.0660, lon: -73.7050, alt_ft: 439, heading: 250, on_ground: true, mode: parked}
+pilot_goal: You are parked at the FBO and want to taxi for a VFR departure.
+pilot_script:
+  - "Westchester Tower, November one two three alpha bravo, Cessna 172 at Million Air, VFR to Hanscom, request taxi"
+script_only: true
+turn_checks:
+  - {turn: 1, any: ["ground"]}
+forbid_clearances: [taxi, takeoff, pushback]
+min_turns: 1
+rubric_notes: Westchester has a Ground position (121.825). Tower should send the aircraft there, not taxi it.
+metar: "KHPN 281256Z 16008KT 10SM FEW040 20/10 A3001"

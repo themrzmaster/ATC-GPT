@@ -1,0 +1,19 @@
+category: emergency
+# Transponder goes to 7700 with no radio call. Does the controller notice and ask?
+airport: KBOS
+callsign: N54321
+language: en
+initial_position: Approach
+flight_plan: {aircraft_type: PC12, flight_rules: IFR, departure: KJFK, destination: KBOS, cruise_altitude_ft: 11000}
+start: {lat: 42.1000, lon: -71.3000, alt_ft: 7000, heading: 45, on_ground: false, mode: cruising}
+pilot_goal: Check in, then go silent with squawk 7700.
+pilot_script:
+  - "Boston Approach, November five four three two one, seven thousand, inbound for landing"
+  - {say: STANDBY, sim: {squawk: 7700}}
+  - STANDBY
+script_only: true
+expect_any: [["7700", "seven seven zero zero", "emergency", "squawking", "assistance"]]
+min_turns: 2
+rubric_notes: Squawk 7700 on radar means emergency. The controller should query it ("confirm you are squawking 7700, say nature of emergency").
+metar: "KBOS 281254Z 04010KT 10SM BKN025 16/11 A2990"
+expect_initiative: true

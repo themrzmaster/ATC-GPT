@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Replay · __NAME__</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root { --bg:#0e1116; --fg:#e6e6e6; --muted:#8b949e; --card:#161b22; --line:#30363d; --acc:#58a6ff;
+          --ok:#3fb950; --warn:#d29922; --bad:#f85149; --gp:#d29922; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.45 ui-monospace, Menlo, monospace; }
+  header { padding:12px 16px; display:flex; gap:16px; align-items:baseline; flex-wrap:wrap; border-bottom:1px solid var(--line); }
+  header a { color:var(--acc); }
+  .badge { padding:2px 8px; border-radius:10px; background:var(--card); }
+  .PASS, .LANDED { color:var(--ok); } .FAIL, .CRASH { color:var(--bad); } .INCOMPLETE { color:var(--warn); }
+  main { display:grid; grid-template-columns: minmax(0,3fr) minmax(0,2fr); gap:12px; padding:12px 16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px; min-width:0; }
+  #map { height:340px; border-radius:6px; }
+  canvas { width:100%; height:220px; display:block; }
+  #shot { width:100%; border-radius:6px; background:#000; min-height:120px; object-fit:cover; }
+  .inst { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:6px; margin-top:8px; }
+  .inst div { background:var(--bg); border-radius:6px; padding:6px; }
+  .inst b { display:block; font-size:18px; }
+  .inst span { color:var(--muted); font-size:11px; }
+  #decision { margin-top:8px; white-space:pre-wrap; max-height:200px; overflow:auto; }
+  .muted { color:var(--muted); }
+  .ms { color:var(--ok); }
+  .controls { position:sticky; bottom:0; background:var(--bg); border-top:1px solid var(--line); padding:10px 16px;
+              display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .controls input[type=range] { flex:1; min-width:200px; }
+  button, select { background:var(--card); color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:6px 10px; font:inherit; }
+  .plane { color:var(--acc); font-size:22px; line-height:22px; text-shadow:0 0 3px #000; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <a href="/">LLM plays X-Plane</a><strong id="title">__NAME__</strong>
+  <span class="badge" id="result">…</span><span class="muted" id="source"></span>
+</header>
+<main>
+  <section>
+    <div class="card"><div id="map"></div></div>
+    <div class="card" style="margin-top:12px">
+      <div class="muted">Profile: height above the runway vs distance to the threshold · dashed = 3° glidepath</div>
+      <canvas id="profile"></canvas>
+    </div>
+  </section>
+  <section>
+    <div class="card">
+      <img id="shot" alt="cockpit view at this moment">
+      <div class="inst">
+        <div><span>AIRSPEED</span><b id="ias">–</b></div>
+        <div><span>HEIGHT AGL</span><b id="agl">–</b></div>
+        <div><span>VERT SPEED</span><b id="vs">–</b></div>
+        <div><span>HEADING</span><b id="hdg">–</b></div>
+        <div><span>PITCH / BANK</span><b id="att">–</b></div>
+        <div><span>THROTTLE</span><b id="thr">–</b></div>
+        <div><span>FLAPS</span><b id="flaps">–</b></div>
+        <div><span>YOKE P / R</span><b id="yoke">–</b></div>
+      </div>
+      <div id="decision" class="muted"></div>
+    </div>
+  </section>
+</main>
+<div class="controls">
+  <button id="play">▶ play</button>
+  <select id="speed"><option value="1">1× real time</option><option value="2">2×</option><option value="4">4×</option><option value="10">10×</option></select>
+  <input type="range" id="scrub" min="0" max="1000" value="0">
+  <span id="clock">0:00 / 0:00</span>
+</div>
+<script>
+const NAME = "__NAME__";
+const FT_PER_DEG = 364000;
+let D, S = [], t0 = 0, t1 = 0, cur = 0, playing = false, last = null;
+let map, full, done, plane;
+
+function local(lat, lon) {                  // along/cross (ft) from the threshold, like geometry.Runway
+  const r = D.runway, h = r.heading * Math.PI / 180;
+  const dn = (lat - r.lat) * FT_PER_DEG, de = (lon - r.lon) * FT_PER_DEG * Math.cos(r.lat * Math.PI / 180);
+  return [dn * Math.cos(h) + de * Math.sin(h), -dn * Math.sin(h) + de * Math.cos(h)];
+}
+function sampleAt(t) {                       // linear interpolation between recorded samples
+  if (t <= S[0].t) return S[0];
+  if (t >= S[S.length - 1].t) return S[S.length - 1];
+  let lo = 0, hi = S.length - 1;
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; (S[m].t <= t ? lo = m : hi = m); }
+  const a = S[lo], b = S[hi], k = (t - a.t) / Math.max(b.t - a.t, 1e-6), o = {};
+  for (const key in a) o[key] = (typeof a[key] === "number" && typeof b[key] === "number") ? a[key] + (b[key] - a[key]) * k : a[key];
+  if (Math.abs(b.hdg - a.hdg) > 180) o.hdg = k < 0.5 ? a.hdg : b.hdg;
+  return o;
+}
+const fmt = (v, d = 0) => (v === null || v === undefined || isNaN(v)) ? "–" : Number(v).toFixed(d);
+const mmss = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+
+function drawProfile(now) {
+  const c = document.getElementById("profile"), W = c.clientWidth, H = c.clientHeight;
+  c.width = W * devicePixelRatio; c.height = H * devicePixelRatio;
+  const g = c.getContext("2d"); g.scale(devicePixelRatio, devicePixelRatio);
+  const r = D.runway, pts = S.map(s => [-local(s.lat, s.lon)[0] / 6076, (s.alt - r.elev_ft)]);
+  const xmax = Math.max(1, ...pts.map(p => p[0])), xmin = Math.min(-r.length_ft / 6076, ...pts.map(p => p[0]));
+  const ymax = Math.max(500, ...pts.map(p => p[1])) * 1.1;
+  const X = x => W - 30 - (x - xmin) / (xmax - xmin) * (W - 50), Y = y => H - 20 - y / ymax * (H - 30);
+  g.strokeStyle = "#30363d"; g.fillStyle = "#8b949e"; g.font = "11px ui-monospace";
+  for (let nm = Math.ceil(xmin); nm <= xmax; nm++) { g.beginPath(); g.moveTo(X(nm), H - 20); g.lineTo(X(nm), 10); g.stroke(); g.fillText(nm + " nm", X(nm) - 12, H - 5); }
+  g.fillText(Math.round(ymax) + " ft", 2, 18);
+  g.strokeStyle = "#e6e6e6"; g.lineWidth = 4; g.beginPath(); g.moveTo(X(0), Y(0)); g.lineTo(X(-r.length_ft / 6076), Y(0)); g.stroke();
+  g.setLineDash([6, 5]); g.strokeStyle = getComputedStyle(document.body).getPropertyValue("--gp"); g.lineWidth = 1.5;
+  g.beginPath(); g.moveTo(X(0), Y(50)); g.lineTo(X(xmax), Y(50 + xmax * 6076 * Math.tan(3 * Math.PI / 180))); g.stroke(); g.setLineDash([]);
+  g.strokeStyle = "#30363d"; g.lineWidth = 2; g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(X(p[0]), Y(p[1])) : g.moveTo(X(p[0]), Y(p[1]))); g.stroke();
+  g.strokeStyle = "#58a6ff"; g.beginPath(); let first = true;
+  S.forEach((s, i) => { if (s.t <= now) { const p = pts[i]; first ? g.moveTo(X(p[0]), Y(p[1])) : g.lineTo(X(p[0]), Y(p[1])); first = false; } }); g.stroke();
+  const c0 = sampleAt(now), p0 = [-local(c0.lat, c0.lon)[0] / 6076, c0.alt - r.elev_ft];
+  g.fillStyle = "#58a6ff"; g.beginPath(); g.arc(X(p0[0]), Y(p0[1]), 5, 0, 7); g.fill();
+}
+
+function render() {
+  const s = sampleAt(cur);
+  plane.setLatLng([s.lat, s.lon]);
+  plane.getElement() && (plane.getElement().firstChild.style.transform = `rotate(${s.hdg}deg)`);
+  done.setLatLngs(S.filter(x => x.t <= cur).map(x => [x.lat, x.lon]));
+  document.getElementById("ias").textContent = fmt(s.ias) + " kt";
+  document.getElementById("agl").textContent = fmt(s.agl) + " ft";
+  document.getElementById("vs").textContent = (s.vs > 0 ? "+" : "") + fmt(s.vs) + " fpm";
+  document.getElementById("hdg").textContent = fmt(s.hdg) + "°";
+  document.getElementById("att").textContent = fmt(s.pitch, 1) + " / " + fmt(s.bank, 1);
+  document.getElementById("thr").textContent = fmt(s.thr, 2);
+  document.getElementById("flaps").textContent = fmt(s.flaps, 2);
+  document.getElementById("yoke").textContent = fmt(s.yoke_pitch, 2) + " / " + fmt(s.yoke_roll, 2);
+  // the decision being flown now = the first act that ends at/after this moment
+  const a = D.acts.find(x => x.t >= cur - 1e-6) || D.acts[D.acts.length - 1];
+  if (a) {
+    const args = Object.entries(a.args).filter(([k]) => !["mixture", "brakes", "parking_brake", "commands", "yaw"].includes(k))
+      .map(([k, v]) => `${k} ${v}`).join(", ");
+    document.getElementById("decision").innerHTML = `<b>turn ${a.turn}</b> · ${args}` +
+      (a.milestones.length ? ` <span class="ms">★ ${a.milestones.join(", ")}</span>` : "") +
+      (a.say ? `\n\n${a.say.replace(/</g, "&lt;")}` : "");
+  }
+  const sh = [...D.shots].reverse().find(x => x.t <= cur + 0.01) || D.shots[0];
+  if (sh && !document.getElementById("shot").src.endsWith(sh.file)) document.getElementById("shot").src = `/c/${NAME}/shots/${sh.file}`;
+  document.getElementById("scrub").value = Math.round((cur - t0) / Math.max(t1 - t0, 1e-6) * 1000);
+  document.getElementById("clock").textContent = `${mmss(cur - t0)} / ${mmss(t1 - t0)}`;
+  drawProfile(cur);
+}
+
+// wall-clock timer (not requestAnimationFrame: that pauses in background tabs, which froze the replay)
+let timer = null;
+function tick() {
+  if (!playing) return;
+  const now = performance.now();
+  if (last !== null) cur = Math.min(t1, cur + (now - last) / 1000 * Number(document.getElementById("speed").value));
+  last = now;
+  render();
+  if (cur >= t1) { stop(); }
+}
+function stop() { playing = false; clearInterval(timer); timer = null; document.getElementById("play").textContent = "▶ play"; }
+
+fetch(`/c/${NAME}/replay.json`).then(r => r.json()).then(d => {
+  D = d; S = d.samples.filter(s => s.lat && s.lon).sort((a, b) => a.t - b.t);
+  const res = d.result || {};
+  const rb = document.getElementById("result");
+  rb.textContent = `${res.result || "?"} · score ${res.score ?? "–"} · ${res.milestones || ""}` + (res.failed ? ` · ${res.failed}` : "");
+  rb.className = "badge " + (res.result || "");
+  document.getElementById("source").textContent = `${d.meta.model || ""} · ${S.length} samples (${d.source})`;
+  if (!S.length || !d.runway) { document.getElementById("decision").textContent = "no trajectory recorded for this flight"; return; }
+  t0 = cur = S[0].t; t1 = S[S.length - 1].t;
+  map = L.map("map", { zoomControl: true }).setView([d.runway.lat, d.runway.lon], 13);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: "© OpenStreetMap" }).addTo(map);
+  L.polyline([[d.runway.lat, d.runway.lon], [d.runway.far_lat, d.runway.far_lon]], { color: "#d6336c", weight: 8, opacity: 0.9 }).addTo(map);
+  full = L.polyline(S.map(s => [s.lat, s.lon]), { color: "#8b949e", weight: 2, dashArray: "4 4" }).addTo(map);
+  done = L.polyline([], { color: "#58a6ff", weight: 3 }).addTo(map);
+  plane = L.marker([S[0].lat, S[0].lon], { icon: L.divIcon({ className: "", html: '<div class="plane">✈</div>', iconSize: [22, 22], iconAnchor: [11, 11] }) }).addTo(map);
+  map.fitBounds(full.getBounds().extend([d.runway.far_lat, d.runway.far_lon]), { padding: [20, 20] });
+  render();
+});
+document.getElementById("play").onclick = () => {
+  if (playing) { stop(); return; }
+  playing = true; last = null;
+  document.getElementById("play").textContent = "❚❚ pause";
+  if (cur >= t1) cur = t0;
+  timer = setInterval(tick, 40);
+};
+document.getElementById("scrub").oninput = e => { cur = t0 + (t1 - t0) * e.target.value / 1000; render(); };
+document.addEventListener("keydown", e => { if (e.code === "Space") { e.preventDefault(); document.getElementById("play").click(); } });
+window.addEventListener("resize", () => D && render());
+</script>
+</body>
+</html>

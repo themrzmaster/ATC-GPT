@@ -1,0 +1,12 @@
+# Virtual ATC plugin config (key=value). Copy to virtualatc_config.txt next to PI_VirtualATC.py.
+# See the PI_VirtualATC.py docstring for every key.
+# ATC server address (use the server machine's LAN/VPN IP when X-Plane runs on another computer)
+server_url=http://127.0.0.1:5000
+language=pt-br
+# pyaudio input device index (blank = Windows default input); scripts/mic_test.py lists them
+mic_device=
+test_wav=virtualatc_test.wav
+# IFR | VFR | blank (unknown): sent to ATC with the flight plan read from the FMS/GPS
+flight_rules=IFR
+# radio callsign (blank = the aircraft's tail number from X-Plane)
+callsign=

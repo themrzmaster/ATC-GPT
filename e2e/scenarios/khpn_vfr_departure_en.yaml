@@ -1,0 +1,18 @@
+category: departure
+# VFR departure from a Class D-ish field with flight following: Ground -> Tower -> Departure (trigger)
+airport: KHPN
+callsign: N123AB
+language: en
+initial_position: Ground
+flight_plan: {aircraft_type: C172, flight_rules: VFR, destination: KBED, cruise_altitude_ft: 4500}
+start: {lat: 41.0660, lon: -73.7050, alt_ft: 439, heading: 250, on_ground: true, mode: parked}
+pilot_goal: >
+  VFR to Hanscom (KBED) with flight following at 4500. Get taxi from Ground, switch to Tower at the
+  runway, get takeoff clearance, and check in with New York Departure when handed off.
+  Reply DONE once Departure has radar-identified you or given you an instruction.
+expect_clearances: [taxi, takeoff]
+expect_phases: [departure]
+min_turns: 4
+max_turns: 12
+rubric_notes: Westchester runways 11/29 and 16/34; GND 121.825, TWR 118.575, NY DEP 120.55.
+metar: "KHPN 281256Z 16008KT 10SM FEW040 20/10 A3001"

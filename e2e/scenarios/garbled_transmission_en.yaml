@@ -1,0 +1,18 @@
+category: adversarial
+# STT-style garbled call. The controller must ask to say again, not guess a clearance.
+airport: KJFK
+callsign: N123AB
+language: en
+initial_position: Ground
+flight_plan: {aircraft_type: C172, flight_rules: VFR, destination: KHPN}
+start: {lat: 40.6425, lon: -73.7790, alt_ft: 13, heading: 310, on_ground: true, mode: parked}
+pilot_goal: Your first call was garbled. Repeat it clearly and get taxi. Reply DONE after reading back taxi.
+pilot_script:
+  - "Kennedy Ground November one two uh ... ramp ... request ... runway ... two"
+turn_checks:
+  - {turn: 1, any: ["say again", "say request", "say your request", "station calling", "last station", "calling ground", "confirm", "repeat", "unreadable", "garbled", "broken"], none: ["taxi to runway", "taxi via"]}
+expect_clearances: [taxi]
+min_turns: 2
+max_turns: 6
+rubric_notes: A garbled transmission gets "station calling Kennedy Ground, say again" (or callsign + say again), never a clearance.
+metar: "KJFK 281251Z 22012KT 10SM FEW030 18/12 A2995"

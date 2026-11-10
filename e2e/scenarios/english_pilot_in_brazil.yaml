@@ -1,0 +1,21 @@
+category: language
+# Foreign crew at Guarulhos: the ATC session is in Portuguese but the pilot speaks English.
+# Brazilian controllers answer foreign crews in English (ICAO). Probes language switching.
+airport: SBGR
+callsign: AAL930
+language: pt-br
+pilot_language: en
+expect_reply_language: en
+initial_position: Solo
+flight_plan: {aircraft_type: B77W, flight_rules: IFR, destination: KMIA, route: DCT, cruise_altitude_ft: 35000}
+start: {lat: -23.4300, lon: -46.4800, alt_ft: 2461, heading: 90, on_ground: true, mode: parked}
+pilot_goal: >
+  You are American 930 (callsign "American nine thirty"), a Boeing 777 at the gate with your IFR
+  clearance. Request pushback and start, then taxi. Speak ENGLISH only. Reply DONE after reading back taxi.
+expect_clearances: [taxi]
+min_turns: 2
+max_turns: 8
+rubric_notes: >
+  ICAO: a controller replies in the language the pilot used (English is always available). Replies in
+  Portuguese to an English-speaking foreign crew are wrong.
+metar: "SBGR 281300Z 09008KT 9999 SCT030 22/15 Q1018"

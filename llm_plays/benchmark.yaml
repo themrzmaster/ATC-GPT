@@ -1,0 +1,43 @@
+# HandFly benchmark: LLMs hand-flying a Cessna 172 in X-Plane 12, closed loop, with only what a pilot has
+# (panel, window view, fitted avionics, ATIS, POH card). Turn-based: the sim pauses while the model thinks.
+#
+#   python -m llm_plays.bench --suite handfly-v1 --dry-run       plan + cost estimate, no model calls
+#   python -m llm_plays.bench --suite handfly-v1                 fly everything not flown yet (sequential, one sim)
+#   python -m llm_plays.bench --suite handfly-v1 --report        results table
+#
+# Proxy models need the key in $LLM_PROXY_KEY (never stored in files).
+# Reasoning: settings.reasoning is the default effort (low|medium|high|none); a model can override it with
+# `reasoning:`. The effort is part of each flight's campaign name and result, and the report shows the reasoning
+# tokens actually used, so a proxy that silently drops the setting is visible.
+# Prices: USD per million tokens (input, cached input, output); used for the cost column and the estimate.
+
+handfly-v1:
+  description: "5 landings: clear/GPS, crosswind, visual only, ILS in fog, ILS below minimums (missed approach)"
+  scenarios:
+    - land_sbbh13                 # baseline: 5 nm final, calm, GPS (RNAV LPV) guidance
+    - land_sbbh13_xwind           # 10 kt direct crosswind
+    - land_sbbh13_visual          # no approach guidance: fly the picture
+    - land_sbsp35l_ils_fog        # ILS, overcast 300 ft, 1 sm: land
+    - land_sbsp35l_ils_below_mins # ILS, ATIS says legal, reality 100 ft: missed approach at the DA
+  settings: {reasoning: low, keep_turns: 24, spectate_every: 2}
+  models:
+    gpt-6.1-sol:         {price: [2.00, 0.10, 10.00]}
+    gpt-6-sol:           {price: [2.00, 0.20, 10.00]}
+    gpt-6-luna:          {price: [0.10, 0.01, 0.50]}
+    gpt-5.6-luna:        {price: [0.20, 0.02, 1.20]}
+    deepseek-v4.1-flash: {price: [0.035, 0.035, 0.60], base_url: "${LLM_PROXY_URL}"}
+    glm-5.3-flash:       {price: [0.15, 0.15, 0.50], base_url: "${LLM_PROXY_URL}"}
+    claude-opus-5-5:     {price: [4.00, 0.20, 20.00], base_url: "${LLM_PROXY_URL}"}
+    # the same models at high reasoning effort (flown after the low-effort runs: cheapest-first order)
+    gpt-6-luna@high:     {price: [0.10, 0.01, 0.50], history: blocks}      # prompt-cache friendly history
+    gpt-5.6-luna@high:   {price: [0.20, 0.02, 1.20], history: blocks}
+    glm-5.3-flash@high:  {price: [0.15, 0.15, 0.50], base_url: "${LLM_PROXY_URL}",
+                          history: blocks, images: keep}
+    # Opus at high effort, with prompt caching: history in blocks (never fewer than keep_turns turns) + Anthropic
+    # cache marks. Via the proxy its thinking is not reported as reasoning tokens: see Out tok/turn.
+    # images: keep = screenshots stay as sent until a block trim (cache friendly; the model sees the recent views,
+    # not only the latest - a different condition from the v1 rows, noted in the report)
+    claude-opus-5-5@high: {price: [4.00, 0.20, 20.00], base_url: "${LLM_PROXY_URL}",
+                           history: blocks, cache_marks: true, images: keep}
+    # qwen 27B: not on the proxy yet (needs a provider with a vision-capable Qwen 27B)
+    # qwen-27b:          {price: [0, 0, 0], base_url: "...", enabled: false}

@@ -1,0 +1,25 @@
+category: pattern
+# Pilot-initiated go-around on short final. Tower must acknowledge and give climb-out/pattern instructions.
+airport: KHPN
+callsign: N123AB
+language: en
+initial_position: Tower
+flight_plan: {aircraft_type: C172, flight_rules: VFR, destination: KHPN, remarks: closed traffic}
+start: {lat: 41.1100, lon: -73.7250, alt_ft: 1450, heading: 160, on_ground: false, mode: descending, steer_to_field: true}
+pilot_goal: >
+  After your go-around, follow Tower's instructions, fly another circuit and get a landing
+  clearance. Reply DONE once cleared to land again.
+pilot_script:
+  - "Westchester Tower, November one two three alpha bravo, three mile final runway one six, full stop"
+  - {say: "November one two three alpha bravo, going around, unstable approach", sim: {mode: climbing, on_ground: false, vs: 700, steer_to_field: false, target_alt_ft: 1500}}
+turn_checks:
+  - {turn: 2, any: ["roger", "climb", "heading", "maintain", "report", "enter", "runway heading", "traffic", "fly"], none: ["cleared to land"]}
+expect_clearances: [landing]
+min_turns: 3
+max_turns: 10
+rubric_notes: >
+  After "going around" Tower acknowledges and gives climb-out instructions (runway heading / altitude /
+  re-enter the pattern). A new landing clearance comes only when the aircraft is on final again.
+sim_steps_per_turn: 2
+sim_step_seconds: 15
+metar: "KHPN 281256Z 16008KT 10SM FEW040 20/10 A3001"

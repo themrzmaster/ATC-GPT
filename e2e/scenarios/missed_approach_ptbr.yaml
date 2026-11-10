@@ -1,0 +1,24 @@
+category: arrival
+# Arremetida no ILS em Guarulhos: Torre deve dar instruções de aproximação perdida / transferir ao Controle.
+airport: SBGR
+callsign: PT-MZC
+language: pt-br
+initial_position: Torre
+flight_plan: {aircraft_type: A320, flight_rules: IFR, departure: SBRJ, destination: SBGR}
+start: {lat: -23.4400, lon: -46.5430, alt_ft: 3760, heading: 95, on_ground: false, mode: descending, steer_to_field: true}
+pilot_goal: >
+  Depois da arremetida, siga as instruções da Torre (e do Controle, se transferido) e peça nova
+  aproximação. Responda DONE quando receber vetores ou autorização para nova aproximação.
+pilot_script:
+  - "Torre Guarulhos, PT-MZC, estabilizado ILS pista um zero esquerda, quatro milhas"
+  - {say: "PT-MZC, arremetendo, arremetendo", sim: {mode: climbing, on_ground: false, vs: 1500, steer_to_field: false, target_alt_ft: 6000}}
+turn_checks:
+  - {turn: 2, any: ["ciente", "procedimento", "aproximação perdida", "aproximacao perdida", "suba", "mantenha", "chame", "proa"], none: ["autorizado pouso"]}
+min_turns: 3
+max_turns: 8
+rubric_notes: >
+  Arremetida: a Torre acusa ("ciente arremetida"), manda cumprir o procedimento de aproximação perdida
+  publicado ou dá proa/altitude, e transfere para o Controle São Paulo 119.8.
+sim_steps_per_turn: 2
+sim_step_seconds: 15
+metar: "SBGR 281300Z 09008KT 9999 SCT030 22/15 Q1018"

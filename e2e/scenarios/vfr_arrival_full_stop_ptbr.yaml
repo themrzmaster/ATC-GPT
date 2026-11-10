@@ -1,0 +1,21 @@
+category: arrival
+# Chegada VFR ao Campo de Marte: ingresso no circuito, pouso, livre da pista -> Solo (trigger)
+airport: SBMT
+callsign: PR-XYZ
+language: pt-br
+initial_position: Torre
+flight_plan: {aircraft_type: C152, flight_rules: VFR, departure: SBJD, destination: SBMT}
+start: {lat: -23.4400, lon: -46.6380, alt_ft: 3400, heading: 180, on_ground: false, mode: cruising, pattern: true}
+pilot_goal: >
+  Você está 7 milhas ao norte do Campo de Marte a 4000 pés, VFR vindo de Jundiaí para pouso.
+  Chame a Torre, siga as instruções de ingresso no circuito, reporte as posições pedidas, obtenha
+  autorização de pouso e, depois de pousar, chame o Solo quando instruído. Responda DONE quando o
+  Solo responder ou quando estiver livre da pista.
+expect_clearances: [landing]
+expect_phases: [ground]
+min_turns: 3
+max_turns: 12
+rubric_notes: >
+  Torre deve dar ingresso no circuito (perna do vento/base) e "autorizado pouso pista XX" com vento.
+  Após o pouso: "livre da pista, chame Solo em um dois um decimal meia".
+metar: "SBMT 281300Z 30006KT 9999 FEW035 24/14 Q1017"

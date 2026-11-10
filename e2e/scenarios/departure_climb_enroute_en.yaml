@@ -1,0 +1,22 @@
+category: enroute
+# Airborne check-in with New York Departure, climb to cruise, then whatever comes after (no Center data)
+airport: KJFK
+callsign: N12345
+language: en
+initial_position: Departure
+flight_plan: {aircraft_type: C172, flight_rules: IFR, destination: KBOS, route: DCT, cruise_altitude_ft: 7000}
+start: {lat: 40.6000, lon: -73.8300, alt_ft: 2000, heading: 220, on_ground: false, mode: climbing, target_alt_ft: 5000}
+pilot_goal: >
+  You just departed JFK IFR to Boston. Check in with New York Departure passing two thousand climbing
+  five thousand. Follow climbs, turns and directs. Reply DONE once you are handed to the next
+  controller (Center) or told to resume own navigation at cruise.
+expect_clearances: [altitude]
+min_turns: 3
+max_turns: 10
+rubric_notes: >
+  Departure should radar-identify, climb to the filed altitude, and turn the aircraft on course.
+  There is no Center frequency in the data; inventing one is a correctness issue.
+metar: "KJFK 281251Z 22012KT 10SM FEW030 18/12 A2995"
+known_gap: >
+  No en-route Center frequencies in the data (OurAirports only lists airport positions), so Departure has
+  no real next controller. Expected: no invented Center digits; the scenario itself stays XFAIL.

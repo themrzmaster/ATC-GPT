@@ -1,0 +1,19 @@
+category: pattern
+# Pattern work in English: takeoff, one touch-and-go, then full stop. Stays on Tower the whole time.
+airport: KHPN
+callsign: N123AB
+language: en
+initial_position: Tower
+flight_plan: {aircraft_type: C172, flight_rules: VFR, destination: KHPN, remarks: closed traffic, touch and go}
+start: {lat: 41.0760, lon: -73.7130, alt_ft: 439, heading: 160, on_ground: true, mode: holding}
+pilot_goal: >
+  You are holding short runway 16. Request takeoff to remain in the pattern for one touch-and-go
+  followed by a full stop. Report the positions Tower asks for (downwind, base, final). Reply DONE
+  once cleared for the full-stop landing.
+expect_clearances: [takeoff, landing]
+expect_any: [["touch and go", "the option", "touch-and-go"]]
+forbid_phrases: ["contact departure", "contact new york"]
+min_turns: 4
+max_turns: 12
+rubric_notes: Tower keeps the aircraft in the pattern, uses "cleared touch-and-go" then "cleared to land".
+metar: "KHPN 281256Z 16008KT 10SM FEW040 20/10 A3001"

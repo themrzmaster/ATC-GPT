@@ -1,0 +1,28 @@
+category: departure
+# Full IFR departure at JFK in English: Delivery -> Ground -> Tower -> Departure (trigger handoff)
+airport: KJFK
+callsign: N12345
+language: en
+initial_position: Delivery
+flight_plan:
+  aircraft_type: C172
+  flight_rules: IFR
+  destination: KBOS
+  route: DCT
+  cruise_altitude_ft: 7000
+start: {lat: 40.6425, lon: -73.7790, alt_ft: 13, heading: 310, on_ground: true, mode: parked}
+pilot_goal: >
+  Get your IFR clearance to Boston from Delivery, then ask to switch to Ground and get taxi
+  to the active runway, then switch to Tower, get takeoff clearance, depart, and check in with
+  Departure when handed off. Stop (DONE) once Departure has acknowledged you or you have been
+  given a climb instruction after takeoff.
+expect_clearances: [ifr, taxi, takeoff]
+expect_phases: [departure]
+expect_phrases: ["cleared"]
+forbid_phrases: ["as an ai", "i cannot", "language model"]
+min_turns: 5
+max_turns: 14
+rubric_notes: >
+  Delivery must not taxi the aircraft. Ground must not clear takeoff. A squawk and a departure
+  frequency should be part of the IFR clearance. The takeoff clearance must name a real JFK runway.
+metar: "KJFK 281251Z 22012KT 10SM FEW030 18/12 A2995"

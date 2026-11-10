@@ -1,0 +1,25 @@
+category: pattern
+# Tráfego VFR no Campo de Marte: circuito com toque e arremetida e pouso completo
+airport: SBMT
+callsign: PR-XYZ
+language: pt-br
+initial_position: Torre
+flight_plan:
+  aircraft_type: C152
+  flight_rules: VFR
+  destination: SBMT
+  remarks: circuito de tráfego, toque e arremetida
+start: {lat: -23.5090, lon: -46.6380, alt_ft: 2368, heading: 120, on_ground: true, mode: parked}
+pilot_goal: >
+  Você está no ponto de espera. Peça à Torre autorização para decolar e permanecer no circuito
+  para um toque e arremetida seguido de pouso completo. Reporte as posições que a Torre pedir
+  (perna do vento, base, final). Responda DONE após ser autorizado o pouso completo.
+expect_clearances: [takeoff, landing]
+expect_phrases: ["pista"]
+forbid_phrases: ["cleared to land", "as an ai"]
+min_turns: 4
+max_turns: 12
+rubric_notes: >
+  Campo de Marte tem pista 12/30. Torre deve dar instruções de circuito (perna do vento, reporte base/final)
+  e usar "autorizado pouso" / "autorizado toque e arremetida".
+metar: "SBMT 281300Z 30006KT 9999 FEW035 24/14 Q1017"

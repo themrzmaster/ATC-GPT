@@ -1,0 +1,28 @@
+category: departure
+# Saída IFR de Guarulhos em português: Tráfego -> Solo -> Torre -> Controle (handoff por trigger)
+airport: SBGR
+callsign: PT-ABC
+language: pt-br
+initial_position: Tráfego
+flight_plan:
+  aircraft_type: C172
+  flight_rules: IFR
+  destination: SBKP
+  route: DCT
+  cruise_altitude_ft: 6000
+start: {lat: -23.4356, lon: -46.4731, alt_ft: 2461, heading: 90, on_ground: true, mode: parked}
+pilot_goal: >
+  Solicite a autorização IFR para Campinas ao Tráfego (delivery), depois peça acionamento e táxi
+  ao Solo, depois chame a Torre no ponto de espera, receba autorização de decolagem, decole e
+  chame o Controle quando for transferido. Responda DONE quando o Controle tiver confirmado
+  contato radar ou lhe dado uma instrução de subida após a decolagem.
+expect_clearances: [taxi, takeoff]
+expect_phases: [approach]     # SBGR has no DEP frequency: tower hands off to São Paulo APP
+expect_phrases: ["autorizado"]
+forbid_phrases: ["cleared for takeoff", "as an ai", "i cannot"]
+min_turns: 5
+max_turns: 14
+rubric_notes: >
+  Fraseologia DECEA em português. Solo não autoriza decolagem. As pistas válidas são 10L/10R/28L/28R;
+  qualquer outra pista é erro grave. A transferência para o Controle deve citar a frequência 119.8.
+metar: "SBGR 281300Z 09008KT 9999 SCT030 22/15 Q1018"

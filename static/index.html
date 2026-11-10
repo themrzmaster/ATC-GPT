@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual ATC Playground</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #e4e4e4;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 20px;
+            min-height: 100vh;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .panel h2 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Left Panel - Session */
+        .session-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .form-group input, .form-group select {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 10px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #da190b;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #888;
+        }
+
+        .status-dot.connected {
+            background: #4CAF50;
+            box-shadow: 0 0 10px #4CAF50;
+        }
+
+        .status-dot.recording {
+            background: #f44336;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Center Panel - Communication */
+        .comm-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .conversation {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            min-height: 400px;
+            max-height: 60vh;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            max-width: 85%;
+        }
+
+        .message.pilot {
+            background: rgba(33, 150, 243, 0.2);
+            border-left: 3px solid #2196F3;
+            margin-left: auto;
+        }
+
+        .message.atc {
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 3px solid #4CAF50;
+        }
+
+        .message-header {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .message-content {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .ptt-section {
+            text-align: center;
+        }
+
+        .ptt-btn {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #2d2d2d, #1a1a1a);
+            border: 4px solid #333;
+            color: #888;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 0 auto 15px;
+        }
+
+        .ptt-btn:hover {
+            border-color: #4CAF50;
+            color: #4CAF50;
+        }
+
+        .ptt-btn.recording {
+            background: linear-gradient(145deg, #4a1a1a, #2d1010);
+            border-color: #f44336;
+            color: #f44336;
+            animation: pulse-border 1s infinite;
+        }
+
+        @keyframes pulse-border {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
+            50% { box-shadow: 0 0 0 15px rgba(244, 67, 54, 0); }
+        }
+
+        .ptt-btn svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .text-input-section {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .text-input-section input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 12px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        /* Right Panel - Aircraft State */
+        .state-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .state-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .state-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .state-item label {
+            display: block;
+            font-size: 10px;
+            color: #888;
+            margin-bottom: 3px;
+        }
+
+        .state-item input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #4CAF50;
+            font-size: 16px;
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+
+        .state-item input:focus {
+            outline: none;
+        }
+
+        .state-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Audio player */
+        .audio-section {
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .audio-section audio {
+            width: 100%;
+            height: 40px;
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #333;
+            border-top-color: #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #333;
+            padding: 15px 25px;
+            border-radius: 8px;
+            transform: translateX(150%);
+            transition: transform 0.3s;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            border-left: 3px solid #f44336;
+        }
+
+        .toast.success {
+            border-left: 3px solid #4CAF50;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateX(-50%) translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Left Panel - Session Control -->
+        <div class="panel session-panel">
+            <h2>Session</h2>
+
+            <div class="status-indicator">
+                <div class="status-dot" id="serverStatus"></div>
+                <span id="serverStatusText">Disconnected</span>
+            </div>
+
+            <div class="form-group">
+                <label>Airport ICAO</label>
+                <input type="text" id="airportIcao" value="KJFK" placeholder="e.g., KJFK">
+            </div>
+
+            <div class="form-group">
+                <label>Callsign</label>
+                <input type="text" id="callsign" value="N12345" placeholder="e.g., N12345">
+            </div>
+
+            <div class="form-group">
+                <label>Frequency</label>
+                <select id="frequency">
+                    <option value="Delivery">Clearance Delivery</option>
+                    <option value="Ground" selected>Ground</option>
+                    <option value="Tower">Tower</option>
+                    <option value="Departure">Departure</option>
+                    <option value="Approach">Approach</option>
+                    <option value="Center">Center</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>ATC Language</label>
+                <select id="language">
+                    <option value="en">English (ICAO)</option>
+                    <option value="pt-br">Portugues (DECEA)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Aircraft type / Rules</label>
+                <div style="display:flex;gap:6px">
+                    <input type="text" id="fpType" value="C172" placeholder="C172" style="flex:1">
+                    <select id="fpRules" style="flex:1"><option value="VFR">VFR</option><option value="IFR">IFR</option></select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Destination / Route</label>
+                <div style="display:flex;gap:6px">
+                    <input type="text" id="fpDest" value="" placeholder="KBOS" style="flex:1">
+                    <input type="text" id="fpRoute" value="" placeholder="DCT" style="flex:2">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Cruise altitude (ft)</label>
+                <input type="number" id="fpCruise" value="" placeholder="5000">
+            </div>
+
+            <button class="btn btn-primary" onclick="tuneToAirport()">
+                Tune / Connect
+            </button>
+
+            <button class="btn btn-danger" onclick="resetSession()">
+                Reset Session
+            </button>
+
+            <div class="audio-section">
+                <h2>ATC Response</h2>
+                <audio id="audioPlayer" controls></audio>
+            </div>
+        </div>
+
+        <!-- Center Panel - Communication -->
+        <div class="panel comm-panel">
+            <h2>Communication</h2>
+
+            <div class="conversation" id="conversation">
+                <div class="message atc">
+                    <div class="message-header">System</div>
+                    <div class="message-content">
+                        Welcome to Virtual ATC Playground. Tune to an airport to begin.
+                    </div>
+                </div>
+            </div>
+
+            <div class="ptt-section">
+                <button class="ptt-btn" id="pttBtn"
+                        onmousedown="startRecording()"
+                        onmouseup="stopRecording()"
+                        onmouseleave="stopRecording()"
+                        ontouchstart="startRecording()"
+                        ontouchend="stopRecording()">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                    </svg>
+                    <span id="pttText">PUSH TO TALK</span>
+                </button>
+                <p style="font-size: 12px; color: #666;">Hold to record, release to send</p>
+            </div>
+
+            <div class="text-input-section">
+                <input type="text" id="textInput" placeholder="Or type your transmission here..."
+                       onkeypress="if(event.key==='Enter') sendText()">
+                <button class="btn btn-primary" onclick="sendText()">Send</button>
+            </div>
+        </div>
+
+        <!-- Right Panel - Aircraft State -->
+        <div class="panel state-panel">
+            <h2>Aircraft State</h2>
+
+            <div class="state-grid">
+                <div class="state-item">
+                    <label>Latitude</label>
+                    <input type="number" id="stateLat" value="40.6413" step="0.0001">
+                </div>
+                <div class="state-item">
+                    <label>Longitude</label>
+                    <input type="number" id="stateLon" value="-73.7781" step="0.0001">
+                </div>
+                <div class="state-item">
+                    <label>Altitude (ft)</label>
+                    <input type="number" id="stateAlt" value="0" step="100">
+                </div>
+                <div class="state-item">
+                    <label>Heading</label>
+                    <input type="number" id="stateHdg" value="270" min="0" max="360">
+                </div>
+                <div class="state-item">
+                    <label>IAS (kts)</label>
+                    <input type="number" id="stateIas" value="0" min="0">
+                </div>
+                <div class="state-item">
+                    <label>GS (kts)</label>
+                    <input type="number" id="stateGs" value="0" min="0">
+                </div>
+                <div class="state-item">
+                    <label>VS (fpm)</label>
+                    <input type="number" id="stateVs" value="0" step="100">
+                </div>
+                <div class="state-item">
+                    <label>Squawk</label>
+                    <input type="number" id="stateSquawk" value="1200" min="0" max="7777">
+                </div>
+                <div class="state-item full-width">
+                    <label>On Ground</label>
+                    <select id="stateOnGround" style="width: 100%; background: transparent; border: none; color: #4CAF50; font-size: 16px;">
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="updateState()" style="margin-top: 15px;">
+                Update State
+            </button>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API_BASE = '';  // Same origin
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+        let sessionActive = false;
+        let atcPollingInterval = null;
+
+        // Check server status on load
+        document.addEventListener('DOMContentLoaded', () => {
+            checkServerStatus();
+            setInterval(checkServerStatus, 5000);
+        });
+
+        // Start polling for ATC calls when session is active
+        function startATCPolling() {
+            if (atcPollingInterval) return;
+            atcPollingInterval = setInterval(checkForATCCall, 3000); // Poll every 3s
+            console.log('Started ATC polling');
+        }
+
+        function stopATCPolling() {
+            if (atcPollingInterval) {
+                clearInterval(atcPollingInterval);
+                atcPollingInterval = null;
+                console.log('Stopped ATC polling');
+            }
+        }
+
+        async function checkForATCCall() {
+            if (!sessionActive) return;
+
+            try {
+                // First send state update to trigger evaluation
+                await fetch(`${API_BASE}/state`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(getAircraftState())
+                });
+
+                // Then check for pending ATC call
+                const response = await fetch(`${API_BASE}/pending_atc?audio=true&ack=false`);
+                const data = await response.json();
+
+                if (data.pending && data.call) {
+                    // Show ATC call notification
+                    showATCCallNotification(data);
+                }
+            } catch (e) {
+                console.error('ATC polling error:', e);
+            }
+        }
+
+        function showATCCallNotification(data) {
+            const call = data.call;
+
+            // Create notification element if not exists
+            let notification = document.getElementById('atcNotification');
+            if (!notification) {
+                notification = document.createElement('div');
+                notification.id = 'atcNotification';
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: linear-gradient(145deg, #1a4d1a, #0d260d);
+                    border: 2px solid #4CAF50;
+                    border-radius: 12px;
+                    padding: 20px 30px;
+                    z-index: 2000;
+                    text-align: center;
+                    box-shadow: 0 0 30px rgba(76, 175, 80, 0.5);
+                    animation: slideDown 0.3s ease-out;
+                `;
+                document.body.appendChild(notification);
+            }
+
+            notification.innerHTML = `
+                <div style="font-size: 12px; color: #888; margin-bottom: 8px;">
+                    INCOMING ATC CALL - ${call.trigger_type.toUpperCase()}
+                </div>
+                <div style="font-size: 16px; color: #4CAF50; margin-bottom: 15px;">
+                    ${call.message}
+                </div>
+                <button onclick="acknowledgeATCCall()" class="btn btn-primary" style="margin-right: 10px;">
+                    Roger / Acknowledge
+                </button>
+                <button onclick="dismissATCNotification()" class="btn" style="background: #666;">
+                    Dismiss
+                </button>
+            `;
+
+            // Play audio
+            if (data.audio_base64) {
+                const audioBlob = base64ToBlob(data.audio_base64, 'audio/mpeg');
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audioPlayer = document.getElementById('audioPlayer');
+                audioPlayer.src = audioUrl;
+                audioPlayer.play();
+            }
+
+            // Stop polling while notification is shown
+            stopATCPolling();
+        }
+
+        async function acknowledgeATCCall() {
+            try {
+                // Acknowledge the call
+                const response = await fetch(`${API_BASE}/pending_atc?audio=false&ack=true`);
+                const data = await response.json();
+
+                if (data.call) {
+                    addMessage('atc', data.call.message);
+
+                    // Update frequency dropdown if handoff
+                    if (data.call.new_phase) {
+                        const freqSelect = document.getElementById('frequency');
+                        const phaseToFreq = {
+                            'clearance': 'Delivery',
+                            'ground': 'Ground',
+                            'tower': 'Tower',
+                            'departure': 'Departure',
+                            'approach': 'Approach',
+                            'center': 'Center'
+                        };
+                        const newFreq = phaseToFreq[data.call.new_phase];
+                        if (newFreq) {
+                            freqSelect.value = newFreq;
+                        }
+                        showToast(`Frequency changed to ${newFreq}`, 'success');
+                    }
+                }
+
+                dismissATCNotification();
+                startATCPolling();
+            } catch (e) {
+                showToast('Failed to acknowledge: ' + e.message, 'error');
+            }
+        }
+
+        function dismissATCNotification() {
+            const notification = document.getElementById('atcNotification');
+            if (notification) {
+                notification.remove();
+            }
+            startATCPolling();
+        }
+
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                if (response.ok) {
+                    document.getElementById('serverStatus').classList.add('connected');
+                    document.getElementById('serverStatusText').textContent = 'Connected';
+                } else {
+                    throw new Error('Not OK');
+                }
+            } catch (e) {
+                document.getElementById('serverStatus').classList.remove('connected');
+                document.getElementById('serverStatusText').textContent = 'Disconnected';
+            }
+        }
+
+        async function tuneToAirport() {
+            const airport = document.getElementById('airportIcao').value.toUpperCase();
+            const callsign = document.getElementById('callsign').value;
+            const frequency = document.getElementById('frequency').value;
+            const language = document.getElementById('language').value;
+
+            showLoading(true);
+            try {
+                const response = await fetch(`${API_BASE}/tune`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        airport_icao: airport,
+                        callsign: callsign,
+                        frequency: frequency,
+                        language: language,
+                        flight_plan: {
+                            aircraft_type: document.getElementById('fpType').value,
+                            flight_rules: document.getElementById('fpRules').value,
+                            destination: document.getElementById('fpDest').value,
+                            route: document.getElementById('fpRoute').value,
+                            cruise_altitude_ft: document.getElementById('fpCruise').value || null
+                        },
+                        state: getAircraftState()
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    showToast(data.error, 'error');
+                } else {
+                    const langLabel = language === 'pt-br' ? 'PT-BR' : 'EN';
+                    const freqMhz = data.session?.frequency_mhz ? ` (${data.session.frequency_mhz.toFixed(3)} MHz)` : '';
+                    showToast(`Tuned to ${airport} ${frequency}${freqMhz} [${langLabel}]`, 'success');
+                    const rw = (data.session?.runways || []).join(', ');
+                    addMessage('system', `Connected to ${data.session?.airport_name || airport} (${airport}) ${data.session?.frequency || frequency}${freqMhz}. Callsign: ${callsign}. Language: ${langLabel}. Runways: ${rw}`);
+
+                    // Start ATC polling
+                    sessionActive = true;
+                    startATCPolling();
+                }
+            } catch (e) {
+                showToast('Failed to connect: ' + e.message, 'error');
+            }
+            showLoading(false);
+        }
+
+        async function resetSession() {
+            try {
+                await fetch(`${API_BASE}/reset`, { method: 'POST' });
+                document.getElementById('conversation').innerHTML = '';
+                addMessage('system', 'Session reset. Tune to an airport to begin.');
+                showToast('Session reset', 'success');
+
+                // Stop ATC polling
+                sessionActive = false;
+                stopATCPolling();
+            } catch (e) {
+                showToast('Failed to reset: ' + e.message, 'error');
+            }
+        }
+
+        function getAircraftState() {
+            return {
+                latitude: parseFloat(document.getElementById('stateLat').value),
+                longitude: parseFloat(document.getElementById('stateLon').value),
+                altitude_ft: parseFloat(document.getElementById('stateAlt').value),
+                heading: parseFloat(document.getElementById('stateHdg').value),
+                indicated_airspeed: parseFloat(document.getElementById('stateIas').value),
+                groundspeed: parseFloat(document.getElementById('stateGs').value),
+                vertical_speed: parseFloat(document.getElementById('stateVs').value),
+                squawk: parseInt(document.getElementById('stateSquawk').value),
+                on_ground: document.getElementById('stateOnGround').value === 'true'
+            };
+        }
+
+        async function updateState() {
+            try {
+                const response = await fetch(`${API_BASE}/state`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(getAircraftState())
+                });
+                if (response.ok) {
+                    showToast('State updated', 'success');
+                }
+            } catch (e) {
+                showToast('Failed to update state', 'error');
+            }
+        }
+
+        async function startRecording() {
+            if (isRecording) return;
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+
+                document.getElementById('pttBtn').classList.add('recording');
+                document.getElementById('pttText').textContent = 'RECORDING...';
+            } catch (e) {
+                showToast('Microphone access denied', 'error');
+            }
+        }
+
+        async function stopRecording() {
+            if (!isRecording || !mediaRecorder) return;
+
+            isRecording = false;
+            document.getElementById('pttBtn').classList.remove('recording');
+            document.getElementById('pttText').textContent = 'PUSH TO TALK';
+
+            mediaRecorder.stop();
+
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+
+                // Convert to base64
+                const reader = new FileReader();
+                reader.onloadend = async () => {
+                    const base64Audio = reader.result.split(',')[1];
+                    await sendAudioToServer(base64Audio);
+                };
+                reader.readAsDataURL(audioBlob);
+
+                // Stop all tracks
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            };
+        }
+
+        async function sendAudioToServer(base64Audio) {
+            showLoading(true);
+            try {
+                const response = await fetch(`${API_BASE}/transmit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        audio: base64Audio,
+                        state: getAircraftState()
+                    })
+                });
+
+                if (response.ok) {
+                    const pilotText = response.headers.get('X-Pilot-Text') || '';
+                    const atcText = response.headers.get('X-ATC-Text') || '';
+
+                    if (pilotText) {
+                        addMessage('pilot', pilotText);
+                    }
+                    if (atcText) {
+                        addMessage('atc', atcText);
+                    }
+
+                    // Play audio
+                    const audioBlob = await response.blob();
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const audioPlayer = document.getElementById('audioPlayer');
+                    audioPlayer.src = audioUrl;
+                    audioPlayer.play();
+                } else {
+                    const data = await response.json();
+                    showToast(data.error || 'Transmission failed', 'error');
+                }
+            } catch (e) {
+                showToast('Failed to send: ' + e.message, 'error');
+            }
+            showLoading(false);
+        }
+
+        async function sendText() {
+            const input = document.getElementById('textInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = '';
+            addMessage('pilot', text);
+            showLoading(true);
+
+            try {
+                const response = await fetch(`${API_BASE}/transmit_text`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    showToast(data.error, 'error');
+                } else {
+                    addMessage('atc', data.atc_text);
+
+                    // Play audio if available
+                    if (data.audio_base64) {
+                        const audioBlob = base64ToBlob(data.audio_base64, 'audio/mpeg');
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        const audioPlayer = document.getElementById('audioPlayer');
+                        audioPlayer.src = audioUrl;
+                        audioPlayer.play();
+                    }
+                }
+            } catch (e) {
+                showToast('Failed to send: ' + e.message, 'error');
+            }
+            showLoading(false);
+        }
+
+        function base64ToBlob(base64, mimeType) {
+            const byteCharacters = atob(base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            return new Blob([byteArray], { type: mimeType });
+        }
+
+        function addMessage(role, content) {
+            const conversation = document.getElementById('conversation');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+
+            const header = role === 'pilot' ? 'Pilot' :
+                          role === 'atc' ? 'ATC' : 'System';
+
+            messageDiv.innerHTML = `
+                <div class="message-header">${header} - ${new Date().toLocaleTimeString()}</div>
+                <div class="message-content">${content}</div>
+            `;
+
+            conversation.appendChild(messageDiv);
+            conversation.scrollTop = conversation.scrollHeight;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').classList.toggle('active', show);
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

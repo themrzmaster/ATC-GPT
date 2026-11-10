@@ -1,0 +1,16 @@
+category: ground
+# Live data: pilot asks for wind and altimeter. Controller must use the METAR tool, not invent numbers.
+airport: KBOS
+callsign: N54321
+language: en
+initial_position: Ground
+flight_plan: {aircraft_type: PC12, flight_rules: VFR, destination: KBED}
+start: {lat: 42.3640, lon: -71.0200, alt_ft: 20, heading: 90, on_ground: true, mode: parked}
+pilot_goal: Get the current wind and altimeter from Ground.
+pilot_script:
+  - "Boston Ground, November five four three two one, at Signature, request current wind and altimeter"
+script_only: true
+turn_checks:
+  - {turn: 1, any: ["wind", "altimeter", "calm"]}
+min_turns: 1
+rubric_notes: Wind and altimeter must come from the real METAR (get_weather), stated in standard phraseology.

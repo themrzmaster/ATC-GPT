@@ -1,0 +1,24 @@
+category: readback
+# Tráfego Guarulhos: autorização IFR com SID real; piloto colaciona frequência de saída errada.
+airport: SBGR
+callsign: PT-MZA
+language: pt-br
+initial_position: Tráfego
+flight_plan: {aircraft_type: A320, flight_rules: IFR, destination: SBRJ, route: DCT, cruise_altitude_ft: 25000}
+start: {lat: -23.4356, lon: -46.4731, alt_ft: 2461, heading: 90, on_ground: true, mode: parked}
+pilot_goal: >
+  Obtenha sua autorização IFR para o Santos Dumont com o Tráfego. Se o controlador corrigir sua
+  colação, colacione o item corrigido. Responda DONE quando a colação for confirmada.
+pilot_script:
+  - "Tráfego Guarulhos, PT-MZA, Airbus A320 no pátio, IFR para o Santos Dumont, solicito autorização"
+  - "Autorizado Santos Dumont conforme plano, frequência de saída um dois sete decimal um, transponder conforme instruído, PT-MZA"
+turn_checks:
+  - {turn: 2, any: ["negativo", "correção", "correcao", "corrija", "confirme", "um um nove", "119"]}
+expect_clearances: [ifr, squawk]
+expect_tools: [get_chart_by_category, get_charts, read_chart]
+min_turns: 2
+max_turns: 6
+rubric_notes: >
+  A autorização deve ter limite, SID real de Guarulhos (das cartas AISWEB), nível, frequência de saída
+  (Controle São Paulo 119.8) e código transponder. A colação com 127.1 está errada e deve ser corrigida.
+metar: "SBGR 281300Z 09008KT 9999 SCT030 22/15 Q1018"

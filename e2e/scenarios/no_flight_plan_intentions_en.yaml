@@ -1,0 +1,20 @@
+category: ground
+# No flight plan on file and a vague request: the controller must ask for intentions
+airport: KHPN
+callsign: N123AB
+language: en
+initial_position: Ground
+flight_plan: {}
+start: {lat: 41.0660, lon: -73.7050, alt_ft: 439, heading: 250, on_ground: true, mode: parked}
+pilot_goal: >
+  You are at the FBO with no flight plan. Say only "ready to taxi" on your first call. When asked, say
+  you are a Cessna 172, VFR departure to the north towards Danbury. Reply DONE once you have a taxi clearance.
+pilot_script:
+  - "Westchester Ground, November one two three alpha bravo, at Million Air, ready to taxi"
+turn_checks:
+  - {turn: 1, any: ["intentions", "destination", "direction", "say", "type", "request", "departing", "departure"]}
+expect_clearances: [taxi]
+min_turns: 2
+max_turns: 8
+rubric_notes: With nothing on the strip the controller asks for type/intentions (or direction of flight) before taxiing.
+metar: "KHPN 281256Z 16008KT 10SM FEW040 20/10 A3001"
